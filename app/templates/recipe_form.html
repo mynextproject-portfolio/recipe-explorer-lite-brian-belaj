@@ -25,18 +25,30 @@
             <!-- Basic Info -->
             <div class="mb-3">
                 <label for="title" class="form-label">Recipe Title</label>
-                <input type="text" class="form-control" id="title" name="title" 
-                       value="{% if recipe %}{{ recipe.title }}{% endif %}" required>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="title"
+                    name="title"
+                    value="{% if recipe %}{{ recipe.title }}{% endif %}"
+                    required
+                >
             </div>
             
             <div class="mb-3">
                 <label for="description" class="form-label">Description</label>
-                <textarea class="form-control" id="description" name="description" rows="3" required>{% if recipe %}{{ recipe.description }}{% endif %}</textarea>
+                <textarea
+                    class="form-control"
+                    id="description"
+                    name="description"
+                    rows="3"
+                    required
+                >{% if recipe %}{{ recipe.description }}{% endif %}</textarea>
             </div>
             
             <div class="mb-3">
                 <label for="difficulty" class="form-label">Difficulty Level</label>
-                <select class="form-control" id="difficulty" name="difficulty" required>
+                <select class="form-select" id="difficulty" name="difficulty" required>
                     <option value="">Select difficulty</option>
                     <option value="Easy" {% if recipe and recipe.difficulty == 'Easy' %}selected{% endif %}>Easy</option>
                     <option value="Medium" {% if recipe and recipe.difficulty == 'Medium' %}selected{% endif %}>Medium</option>
@@ -46,7 +58,7 @@
 
             <div class="mb-3">
                 <label for="cuisine" class="form-label">Cuisine</label>
-                <select class="form-control" id="cuisine" name="cuisine" required>
+                <select class="form-select" id="cuisine" name="cuisine" required>
                     <option value="">Select cuisine</option>
                     <option value="Italian" {% if recipe and recipe.cuisine == 'Italian' %}selected{% endif %}>Italian</option>
                     <option value="Mexican" {% if recipe and recipe.cuisine == 'Mexican' %}selected{% endif %}>Mexican</option>
@@ -65,9 +77,14 @@
             
             <div class="mb-3">
                 <label for="tags" class="form-label">Tags (comma-separated)</label>
-                <input type="text" class="form-control" id="tags" name="tags" 
-                       value="{% if recipe %}{{ recipe.tags|join(', ') }}{% endif %}"
-                       placeholder="e.g. vegetarian, quick, healthy">
+                <input
+                    type="text"
+                    class="form-control"
+                    id="tags"
+                    name="tags"
+                    value="{% if recipe %}{{ recipe.tags|join(', ') }}{% endif %}"
+                    placeholder="e.g. vegetarian, quick, healthy"
+                >
             </div>
             
             <!-- Ingredients Section -->
@@ -78,8 +95,13 @@
                         {% for ingredient in recipe.ingredients %}
                         <div class="ingredient-item mb-2">
                             <div class="input-group">
-                                <input type="text" class="form-control ingredient-input" 
-                                       value="{{ ingredient }}" required>
+                                <input
+                                    type="text"
+                                    class="form-control ingredient-input"
+                                    value="{{ ingredient }}"
+                                    placeholder="Enter ingredient..."
+                                    required
+                                >
                                 <button type="button" class="btn btn-outline-danger remove-ingredient">Remove</button>
                             </div>
                         </div>
@@ -87,24 +109,36 @@
                     {% else %}
                         <div class="ingredient-item mb-2">
                             <div class="input-group">
-                                <input type="text" class="form-control ingredient-input" 
-                                       placeholder="Enter ingredient..." required>
+                                <input
+                                    type="text"
+                                    class="form-control ingredient-input"
+                                    placeholder="Enter ingredient..."
+                                    required
+                                >
                                 <button type="button" class="btn btn-outline-danger remove-ingredient">Remove</button>
                             </div>
                         </div>
                     {% endif %}
                 </div>
+
                 <button type="button" id="add-ingredient" class="btn btn-outline-primary btn-sm">
                     + Add Ingredient
                 </button>
-                <textarea name="ingredients" id="ingredients-data" style="display: none;"></textarea>
+
+                <input type="hidden" name="ingredients" id="ingredients-data">
             </div>
             
             <!-- Instructions Section -->
             <div class="mb-4">
                 <label for="instructions" class="form-label">Instructions</label>
-                <textarea class="form-control" id="instructions" name="instructions" rows="8" required
-                          placeholder="Enter one step per line, e.g.&#10;Chop the onion&#10;Heat the oil&#10;Add the tomatoes">{% if recipe and recipe.instructions %}{{ recipe.instructions | join('\n') }}{% endif %}</textarea>
+                <textarea
+                    class="form-control"
+                    id="instructions"
+                    name="instructions"
+                    rows="8"
+                    required
+                    placeholder="Enter one step per line, e.g.&#10;Chop the onion&#10;Heat the oil&#10;Add the tomatoes"
+                >{% if recipe and recipe.instructions %}{{ recipe.instructions | join('\n') }}{% endif %}</textarea>
                 <div class="form-text">Write one cooking step per line.</div>
             </div>
             
@@ -113,8 +147,10 @@
                 <button type="submit" class="btn btn-success">
                     {% if is_edit %}Update Recipe{% else %}Create Recipe{% endif %}
                 </button>
-                <a href="{% if is_edit and recipe %}/recipes/{{ recipe.id }}{% else %}/{% endif %}" 
-                   class="btn btn-secondary">Cancel</a>
+                <a
+                    href="{% if is_edit and recipe %}/recipes/{{ recipe.id }}{% else %}/{% endif %}"
+                    class="btn btn-secondary"
+                >Cancel</a>
             </div>
         </form>
     </div>
@@ -123,14 +159,66 @@
 
 {% block scripts %}
 <script>
-document.querySelector('form').addEventListener('submit', function(e) {
+const form = document.querySelector('form');
+const ingredientsContainer = document.getElementById('ingredients-container');
+const ingredientsData = document.getElementById('ingredients-data');
+const addIngredientButton = document.getElementById('add-ingredient');
+
+function updateIngredientsData() {
     const ingredients = [];
     document.querySelectorAll('.ingredient-input').forEach(input => {
         if (input.value.trim()) {
             ingredients.push(input.value.trim());
         }
     });
-    document.getElementById('ingredients-data').value = ingredients.join('\n');
+    ingredientsData.value = ingredients.join('\n');
+}
+
+function createIngredientRow(value = '') {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ingredient-item mb-2';
+    wrapper.innerHTML = `
+        <div class="input-group">
+            <input
+                type="text"
+                class="form-control ingredient-input"
+                placeholder="Enter ingredient..."
+                value="${value}"
+                required
+            >
+            <button type="button" class="btn btn-outline-danger remove-ingredient">Remove</button>
+        </div>
+    `;
+    return wrapper;
+}
+
+addIngredientButton.addEventListener('click', function () {
+    ingredientsContainer.appendChild(createIngredientRow());
 });
+
+ingredientsContainer.addEventListener('click', function (e) {
+    if (e.target.classList.contains('remove-ingredient')) {
+        const items = ingredientsContainer.querySelectorAll('.ingredient-item');
+        if (items.length > 1) {
+            e.target.closest('.ingredient-item').remove();
+        } else {
+            const input = e.target.closest('.ingredient-item').querySelector('.ingredient-input');
+            input.value = '';
+        }
+        updateIngredientsData();
+    }
+});
+
+ingredientsContainer.addEventListener('input', function (e) {
+    if (e.target.classList.contains('ingredient-input')) {
+        updateIngredientsData();
+    }
+});
+
+form.addEventListener('submit', function () {
+    updateIngredientsData();
+});
+
+updateIngredientsData();
 </script>
 {% endblock %}
