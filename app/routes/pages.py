@@ -84,30 +84,30 @@ def create_recipe_form(
 ):
     """Handle new recipe form submission"""
     try:
-        # Check title length
         if len(title) > 200:
             raise ValueError("Title too long")
 
-        # Parse ingredients (one per line) and tags (comma-separated)
-        ingredient_list = [
-            ing.strip() for ing in ingredients.split("\n") if ing.strip()
-        ]
+        ingredient_list = [ing.strip() for ing in ingredients.split("\n") if ing.strip()]
+        instruction_steps = [step.strip() for step in instructions.split("\n") if step.strip()]
         tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()]
 
-        # Validation
         if len(ingredient_list) == 0:
             raise ValueError("At least one ingredient required")
 
-        if not instructions.strip():
-            raise ValueError("Instructions are required")
+        if len(instruction_steps) == 0:
+            raise ValueError("At least one instruction step is required")
+
+        if not cuisine.strip():
+            raise ValueError("Cuisine is required")
 
         recipe_data = RecipeCreate(
             title=title,
             description=description,
             difficulty=difficulty,
             ingredients=ingredient_list,
-            instructions=instructions.strip(),
+            instructions=instruction_steps,
             tags=tag_list,
+            cuisine=cuisine.strip(),
         )
 
         new_recipe = recipe_storage.create_recipe(recipe_data)
@@ -117,7 +117,8 @@ def create_recipe_form(
         )
     except Exception as e:
         return RedirectResponse(
-            url=f"/?message=Error creating recipe: {str(e)}", status_code=303
+            url=f"/?message=Error creating recipe: {str(e)}",
+            status_code=303,
         )
 
 
