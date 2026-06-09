@@ -1,21 +1,23 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
+from pydantic import ConfigDict
 from datetime import datetime
 from typing import List, Optional
 from enum import Enum
 import uuid
 
-# Constants
 MAX_TITLE_LENGTH = 200
 MAX_INGREDIENTS = 50
 
 class DifficultyLevel(str, Enum):
     EASY = "Easy"
-    MEDIUM = "Medium" 
+    MEDIUM = "Medium"
     HARD = "Hard"
 
 class Recipe(BaseModel):
+    model_config = ConfigDict()
+
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    title: str 
+    title: str
     description: str
     ingredients: List[str]
     instructions: str
@@ -24,12 +26,9 @@ class Recipe(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
-
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
-
+    @field_serializer('created_at', 'updated_at')
+    def serialize_datetime(self, v: datetime) -> str:
+        return v.isoformat()
 
 class RecipeCreate(BaseModel):
     title: str
@@ -38,7 +37,6 @@ class RecipeCreate(BaseModel):
     instructions: str
     tags: List[str] = Field(default_factory=list)
     difficulty: DifficultyLevel
-
 
 class RecipeUpdate(BaseModel):
     title: str
