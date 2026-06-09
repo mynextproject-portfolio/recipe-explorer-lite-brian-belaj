@@ -25,25 +25,13 @@
             <!-- Basic Info -->
             <div class="mb-3">
                 <label for="title" class="form-label">Recipe Title</label>
-                <input
-                    type="text"
-                    class="form-control"
-                    id="title"
-                    name="title"
-                    value="{% if recipe %}{{ recipe.title }}{% endif %}"
-                    required
-                >
+                <input type="text" class="form-control" id="title" name="title"
+                       value="{% if recipe %}{{ recipe.title }}{% endif %}" required>
             </div>
             
             <div class="mb-3">
                 <label for="description" class="form-label">Description</label>
-                <textarea
-                    class="form-control"
-                    id="description"
-                    name="description"
-                    rows="3"
-                    required
-                >{% if recipe %}{{ recipe.description }}{% endif %}</textarea>
+                <textarea class="form-control" id="description" name="description" rows="3" required>{% if recipe %}{{ recipe.description }}{% endif %}</textarea>
             </div>
             
             <div class="mb-3">
@@ -77,14 +65,9 @@
             
             <div class="mb-3">
                 <label for="tags" class="form-label">Tags (comma-separated)</label>
-                <input
-                    type="text"
-                    class="form-control"
-                    id="tags"
-                    name="tags"
-                    value="{% if recipe %}{{ recipe.tags|join(', ') }}{% endif %}"
-                    placeholder="e.g. vegetarian, quick, healthy"
-                >
+                <input type="text" class="form-control" id="tags" name="tags"
+                       value="{% if recipe %}{{ recipe.tags|join(', ') }}{% endif %}"
+                       placeholder="e.g. vegetarian, quick, healthy">
             </div>
             
             <!-- Ingredients Section -->
@@ -95,13 +78,8 @@
                         {% for ingredient in recipe.ingredients %}
                         <div class="ingredient-item mb-2">
                             <div class="input-group">
-                                <input
-                                    type="text"
-                                    class="form-control ingredient-input"
-                                    value="{{ ingredient }}"
-                                    placeholder="Enter ingredient..."
-                                    required
-                                >
+                                <input type="text" class="form-control ingredient-input"
+                                       value="{{ ingredient }}" placeholder="Enter ingredient..." required>
                                 <button type="button" class="btn btn-outline-danger remove-ingredient">Remove</button>
                             </div>
                         </div>
@@ -109,37 +87,50 @@
                     {% else %}
                         <div class="ingredient-item mb-2">
                             <div class="input-group">
-                                <input
-                                    type="text"
-                                    class="form-control ingredient-input"
-                                    placeholder="Enter ingredient..."
-                                    required
-                                >
+                                <input type="text" class="form-control ingredient-input"
+                                       placeholder="Enter ingredient..." required>
                                 <button type="button" class="btn btn-outline-danger remove-ingredient">Remove</button>
                             </div>
                         </div>
                     {% endif %}
                 </div>
-
                 <button type="button" id="add-ingredient" class="btn btn-outline-primary btn-sm">
                     + Add Ingredient
                 </button>
-
                 <input type="hidden" name="ingredients" id="ingredients-data">
             </div>
             
             <!-- Instructions Section -->
             <div class="mb-4">
-                <label for="instructions" class="form-label">Instructions</label>
-                <textarea
-                    class="form-control"
-                    id="instructions"
-                    name="instructions"
-                    rows="8"
-                    required
-                    placeholder="Enter one step per line, e.g.&#10;Chop the onion&#10;Heat the oil&#10;Add the tomatoes"
-                >{% if recipe and recipe.instructions %}{{ recipe.instructions | join('\n') }}{% endif %}</textarea>
-                <div class="form-text">Write one cooking step per line.</div>
+                <label class="form-label">Instructions</label>
+                <div id="instructions-container">
+                    {% if recipe and recipe.instructions %}
+                        {% for step in recipe.instructions %}
+                        <div class="instruction-item mb-2">
+                            <div class="input-group">
+                                <span class="input-group-text">Step {{ loop.index }}</span>
+                                <input type="text" class="form-control instruction-input"
+                                       value="{{ step }}" placeholder="Describe this step..." required>
+                                <button type="button" class="btn btn-outline-danger remove-instruction">Remove</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="instruction-item mb-2">
+                            <div class="input-group">
+                                <span class="input-group-text">Step 1</span>
+                                <input type="text" class="form-control instruction-input"
+                                       placeholder="Describe this step..." required>
+                                <button type="button" class="btn btn-outline-danger remove-instruction">Remove</button>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="button" id="add-instruction" class="btn btn-outline-primary btn-sm">
+                    + Add Step
+                </button>
+                <div class="form-text">Add one instruction per step.</div>
+                <input type="hidden" name="instructions" id="instructions-data">
             </div>
             
             <!-- Submit Buttons -->
@@ -147,10 +138,8 @@
                 <button type="submit" class="btn btn-success">
                     {% if is_edit %}Update Recipe{% else %}Create Recipe{% endif %}
                 </button>
-                <a
-                    href="{% if is_edit and recipe %}/recipes/{{ recipe.id }}{% else %}/{% endif %}"
-                    class="btn btn-secondary"
-                >Cancel</a>
+                <a href="{% if is_edit and recipe %}/recipes/{{ recipe.id }}{% else %}/{% endif %}"
+                   class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
@@ -160,9 +149,14 @@
 {% block scripts %}
 <script>
 const form = document.querySelector('form');
+
 const ingredientsContainer = document.getElementById('ingredients-container');
 const ingredientsData = document.getElementById('ingredients-data');
 const addIngredientButton = document.getElementById('add-ingredient');
+
+const instructionsContainer = document.getElementById('instructions-container');
+const instructionsData = document.getElementById('instructions-data');
+const addInstructionButton = document.getElementById('add-instruction');
 
 function updateIngredientsData() {
     const ingredients = [];
@@ -174,19 +168,46 @@ function updateIngredientsData() {
     ingredientsData.value = ingredients.join('\n');
 }
 
+function updateInstructionsData() {
+    const steps = [];
+    document.querySelectorAll('.instruction-input').forEach(input => {
+        if (input.value.trim()) {
+            steps.push(input.value.trim());
+        }
+    });
+    instructionsData.value = steps.join('\n');
+}
+
+function renumberSteps() {
+    document.querySelectorAll('.instruction-item').forEach((item, index) => {
+        const label = item.querySelector('.input-group-text');
+        if (label) {
+            label.textContent = `Step ${index + 1}`;
+        }
+    });
+}
+
 function createIngredientRow(value = '') {
     const wrapper = document.createElement('div');
     wrapper.className = 'ingredient-item mb-2';
     wrapper.innerHTML = `
         <div class="input-group">
-            <input
-                type="text"
-                class="form-control ingredient-input"
-                placeholder="Enter ingredient..."
-                value="${value}"
-                required
-            >
+            <input type="text" class="form-control ingredient-input" placeholder="Enter ingredient..." value="${value}" required>
             <button type="button" class="btn btn-outline-danger remove-ingredient">Remove</button>
+        </div>
+    `;
+    return wrapper;
+}
+
+function createInstructionRow(value = '') {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'instruction-item mb-2';
+    const stepNumber = instructionsContainer.querySelectorAll('.instruction-item').length + 1;
+    wrapper.innerHTML = `
+        <div class="input-group">
+            <span class="input-group-text">Step ${stepNumber}</span>
+            <input type="text" class="form-control instruction-input" placeholder="Describe this step..." value="${value}" required>
+            <button type="button" class="btn btn-outline-danger remove-instruction">Remove</button>
         </div>
     `;
     return wrapper;
@@ -196,16 +217,34 @@ addIngredientButton.addEventListener('click', function () {
     ingredientsContainer.appendChild(createIngredientRow());
 });
 
+addInstructionButton.addEventListener('click', function () {
+    instructionsContainer.appendChild(createInstructionRow());
+    renumberSteps();
+    updateInstructionsData();
+});
+
 ingredientsContainer.addEventListener('click', function (e) {
     if (e.target.classList.contains('remove-ingredient')) {
         const items = ingredientsContainer.querySelectorAll('.ingredient-item');
         if (items.length > 1) {
             e.target.closest('.ingredient-item').remove();
         } else {
-            const input = e.target.closest('.ingredient-item').querySelector('.ingredient-input');
-            input.value = '';
+            e.target.closest('.ingredient-item').querySelector('.ingredient-input').value = '';
         }
         updateIngredientsData();
+    }
+});
+
+instructionsContainer.addEventListener('click', function (e) {
+    if (e.target.classList.contains('remove-instruction')) {
+        const items = instructionsContainer.querySelectorAll('.instruction-item');
+        if (items.length > 1) {
+            e.target.closest('.instruction-item').remove();
+        } else {
+            e.target.closest('.instruction-item').querySelector('.instruction-input').value = '';
+        }
+        renumberSteps();
+        updateInstructionsData();
     }
 });
 
@@ -215,10 +254,19 @@ ingredientsContainer.addEventListener('input', function (e) {
     }
 });
 
+instructionsContainer.addEventListener('input', function (e) {
+    if (e.target.classList.contains('instruction-input')) {
+        updateInstructionsData();
+    }
+});
+
 form.addEventListener('submit', function () {
     updateIngredientsData();
+    updateInstructionsData();
 });
 
 updateIngredientsData();
+updateInstructionsData();
+renumberSteps();
 </script>
 {% endblock %}
