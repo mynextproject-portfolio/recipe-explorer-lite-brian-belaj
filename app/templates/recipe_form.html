@@ -43,6 +43,25 @@
                     <option value="Hard" {% if recipe and recipe.difficulty == 'Hard' %}selected{% endif %}>Hard</option>
                 </select>
             </div>
+
+            <div class="mb-3">
+                <label for="cuisine" class="form-label">Cuisine</label>
+                <select class="form-control" id="cuisine" name="cuisine" required>
+                    <option value="">Select cuisine</option>
+                    <option value="Italian" {% if recipe and recipe.cuisine == 'Italian' %}selected{% endif %}>Italian</option>
+                    <option value="Mexican" {% if recipe and recipe.cuisine == 'Mexican' %}selected{% endif %}>Mexican</option>
+                    <option value="Thai" {% if recipe and recipe.cuisine == 'Thai' %}selected{% endif %}>Thai</option>
+                    <option value="Japanese" {% if recipe and recipe.cuisine == 'Japanese' %}selected{% endif %}>Japanese</option>
+                    <option value="Indian" {% if recipe and recipe.cuisine == 'Indian' %}selected{% endif %}>Indian</option>
+                    <option value="Chinese" {% if recipe and recipe.cuisine == 'Chinese' %}selected{% endif %}>Chinese</option>
+                    <option value="French" {% if recipe and recipe.cuisine == 'French' %}selected{% endif %}>French</option>
+                    <option value="Greek" {% if recipe and recipe.cuisine == 'Greek' %}selected{% endif %}>Greek</option>
+                    <option value="Spanish" {% if recipe and recipe.cuisine == 'Spanish' %}selected{% endif %}>Spanish</option>
+                    <option value="Middle Eastern" {% if recipe and recipe.cuisine == 'Middle Eastern' %}selected{% endif %}>Middle Eastern</option>
+                    <option value="American" {% if recipe and recipe.cuisine == 'American' %}selected{% endif %}>American</option>
+                    <option value="Other" {% if recipe and recipe.cuisine == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
             
             <div class="mb-3">
                 <label for="tags" class="form-label">Tags (comma-separated)</label>
@@ -78,15 +97,15 @@
                 <button type="button" id="add-ingredient" class="btn btn-outline-primary btn-sm">
                     + Add Ingredient
                 </button>
-                <!-- Hidden textarea to submit ingredients -->
                 <textarea name="ingredients" id="ingredients-data" style="display: none;"></textarea>
             </div>
             
             <!-- Instructions Section -->
             <div class="mb-4">
                 <label for="instructions" class="form-label">Instructions</label>
-                <textarea class="form-control" id="instructions" name="instructions" rows="8" required 
-                          placeholder="Enter complete cooking instructions...">{% if recipe %}{{ recipe.instructions }}{% endif %}</textarea>
+                <textarea class="form-control" id="instructions" name="instructions" rows="8" required
+                          placeholder="Enter one step per line, e.g.&#10;Chop the onion&#10;Heat the oil&#10;Add the tomatoes">{% if recipe and recipe.instructions %}{{ recipe.instructions | join('\n') }}{% endif %}</textarea>
+                <div class="form-text">Write one cooking step per line.</div>
             </div>
             
             <!-- Submit Buttons -->
@@ -104,9 +123,7 @@
 
 {% block scripts %}
 <script>
-// Form submission handler to collect dynamic fields
 document.querySelector('form').addEventListener('submit', function(e) {
-    // Collect ingredients
     const ingredients = [];
     document.querySelectorAll('.ingredient-input').forEach(input => {
         if (input.value.trim()) {
